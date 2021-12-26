@@ -4,7 +4,7 @@ from collections import namedtuple
 Dependency = namedtuple("Dependency", ["module", "package", "name"])
 
 bl_info = {
-	"name": "Clean Graph",
+	"name": "FCurve Cleaner",
 	"author": "S.M.Hossein Fatemi",
 	"version": (1, 0),
 	"blender": (2, 93, 0),
@@ -14,7 +14,8 @@ bl_info = {
 }
 
 dependencies = (Dependency(module="scipy", package=None, name=None),)
-modulesNames = ['clean_graph_utils', 'clean_graph_op', 'clean_graph_ui', 'install_dependencies']
+# modulesNames = ['clean_graph_utils', 'clean_graph_op', 'clean_graph_ui', 'install_dependencies']
+modulesNames = ['clean_graph_utils', 'install_dependencies']
 
 modulesFullNames = {}
 for currentModuleName in modulesNames:

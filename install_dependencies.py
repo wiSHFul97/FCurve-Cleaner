@@ -4,7 +4,7 @@ import sys
 import subprocess
 import importlib
 from . import clean_graph_op, clean_graph_ui, bl_info, dependencies
-dependent_classes = (clean_graph_op, clean_graph_ui)
+dependent_modules = (clean_graph_op, clean_graph_ui)
 
 def import_module(module_name, global_name=None, reload=True):
 	"""
@@ -164,12 +164,7 @@ class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
 
 		global dependencies_installed
 		dependencies_installed = True
-
-		# Register the panels, operators, etc. since dependencies are installed
-		# for cls in dependent_modules:
-		# for cls in (EXAMPLE_PT_panel, EXAMPLE_OT_dummy_operator):
-		# 	bpy.utils.register_class(cls)
-
+		register_dependent_modules()
 		return {"FINISHED"}
 
 
@@ -194,9 +189,10 @@ def register():
 	except ModuleNotFoundError:
 		# Don't register other panels, operators etc.
 		return
+	register_dependent_modules()
 
-	# for cls in dependent_modules:
-	for cls in dependent_classes:
+def register_dependent_modules():
+	for cls in dependent_modules:
 		if hasattr(cls, 'register'):
 			cls.register()
 		else:
@@ -208,8 +204,7 @@ def unregister():
 		bpy.utils.unregister_class(cls)
 
 	if dependencies_installed:
-		# for cls in dependent_modules:
-		for cls in dependent_classes:
+		for cls in dependent_modules:
 			if hasattr(cls, 'unregister'):
 				cls.unregister()
 			else:
