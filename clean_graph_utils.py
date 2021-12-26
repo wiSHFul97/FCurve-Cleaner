@@ -19,15 +19,13 @@ def shorten_the_range(points, period, from_start=False, is_min=True, tolerance=.
 	return (last_exterm, period[1]) if from_start else (period[0], last_exterm)
 	# return (i, period[1]) if from_start else (period[0], i) # TODO dorost kardane index ha (+- 1 nadashte bashe?)
 
-# TODO anomaly percent instead of constant number of points
-# TODO also check anomaly point distance to prev point -> two conditions: 1-anomaly count 2-diff < limit
 # def shorten_the_range1(points, period, from_start=False, is_min=True, anomaly_count=2): 
 # 	anomalies = 0
 # 	offset, current, start, end = (1, period[0], period[0], period[1]) if from_start \
 # 		else (-1, period[1], period[1], period[0])
 
 # 	for i in range(start+offset, end+offset, offset):
-# 		if (points[i][1].y == points[i+offset][1].y) or ((points[i][1].y > points[i+offset][1].y) ^ is_min): # TODO use threshold
+# 		if (points[i][1].y == points[i+offset][1].y) or ((points[i][1].y > points[i+offset][1].y) ^ is_min):
 # 			current = i+offset
 # 		else:
 # 			anomalies += 1
@@ -60,12 +58,8 @@ def break_range(points, range_start, point1, range_end, point2, anomaly_count):
 
 def convert_to_straight_line(points, start, end): # TODO vector math with numpy
 	slope = (points[end][1].y - points[start][1].y)/(points[end][1].x - points[start][1].x)
-	# if math.isclose(slope, 0.0, rel_tol=1e-3):
-	# 	return points[start:end]
-	# print("in straighten ****************:", slope, points[start], points[end])
 	start_x = points[start][1].x
 	new_points = [(point[0]-start, Vector((point[1].x, point[1].y-(slope*(point[1].x-start_x))))) for point in points[start:end+1]]
-	# print("in straighten ****************:", new_points[0], new_points[-1])
 	return new_points
 	
 # def get_min_max_kf_inds(points, start, end, anomaly_count=2):
@@ -110,7 +104,7 @@ def get_new_start_end(points, start, end, anomaly_tol=.2):
 	last_frame_is_min = points[end-1][1].y > points[end][1].y
 	new_end = shorten_the_range(points, (start, end), from_start=False, is_min=last_frame_is_min, tolerance=anomaly_tol)[1]
 
-	first_frame_is_min = points[start+1][1].y > points[start][1].y # TODO noise problem
+	first_frame_is_min = points[start+1][1].y > points[start][1].y
 	new_start = shorten_the_range(points, (start, end), from_start=True, is_min=first_frame_is_min, tolerance=anomaly_tol)[0]
 	
 	return new_start, new_end
@@ -152,7 +146,7 @@ def find_inbetween_points(selected_kf_inds, points, inbetween_precision):
 		if end - range_start < 2:
 			continue
 		straighted_points = convert_to_straight_line(points, range_start, end) # make indexes from zero
-		# TODO why len - 2 ?
+		# TODO why (len - 2) works?
 		inds = get_lr_exterms_kf_inds(straighted_points, 0, len(straighted_points)-1, anomaly_tol=inbetween_precision)
 		converted_inds = [range_start+point for point in inds] # convert back indexes: +=start
 		interpolation_points_inds.extend(converted_inds)
@@ -190,7 +184,7 @@ def calculate_apply_curve_handles(selected_points, kf_points, points):
 	
 	from scipy.optimize import minimize
 	for j in range(len(selected_points)-1):
-		print(j/len(selected_points))
+		print(int(100*j/len(selected_points)))
 		xys = [(x[1].x, x[1].y) for x in points[selected_points[j]:selected_points[j+1]+1]]
 		x0, y0 = xys[0]
 		x3, y3 = xys[-1]
@@ -199,8 +193,7 @@ def calculate_apply_curve_handles(selected_points, kf_points, points):
 		d_func = lambda params:distance_func(params, x0, y0, x3, y3, np.array(xys[0]), np.array(xys[1]))
 		initial_guess = np.array([.8*x0+.2*x3, .8*y0+.2*y3, .8*x3+.2*x0, .8*y3+.2*y0])
 		y_diff = max(xys[1])-min(xys[1])
-		# TODO ydiff?
-		y_diff *= 2
+		y_diff *= 1.5 # TODO calculate the multiplier
 		# TODO .000001
 		result = minimize(d_func, initial_guess, bounds=[(x0+.000001, x3), (y0-y_diff, y0+y_diff), (x0, x3-.000001), (y3-y_diff, y3+y_diff)])
 		if result.success:

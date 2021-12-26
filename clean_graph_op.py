@@ -1,6 +1,6 @@
 import bpy
 from .clean_graph_utils import get_cleaning_kf_index_range, get_lr_exterms_kf_inds \
-	, find_inbetween_points, distance_func, calculate_apply_curve_handles
+	, find_inbetween_points, calculate_apply_curve_handles
 import numpy as np
 
 
@@ -12,14 +12,15 @@ class GRAPH_OT_clean_graph(bpy.types.Operator):
 	
 	@classmethod
 	def poll(cls, context):
-		# return True
 		return context.area.type == 'GRAPH_EDITOR'
 	
 	def execute(self, context):
-		scene = context.scene
 		fcurve = context.active_editable_fcurve
 		if fcurve is None:
-			raise 'select an fcurve!' # TODO unless it is for all fcurves
+			self.report({'WARNING'}, "Select an FCurve First!")
+			return {'CANCELLED'}
+			# TODO unless it is for all fcurves
+		scene = context.scene
 		keyframe_tol = scene.keyframes_tolerance
 		inbetween_tol = scene.inbetweens_tolerance
 
@@ -32,17 +33,10 @@ class GRAPH_OT_clean_graph(bpy.types.Operator):
 		# first pass: select extermums as KFs
 		selected_kf_inds = [start, finish]
 		selected_kf_inds.extend(get_lr_exterms_kf_inds(points, start, finish, anomaly_tol=keyframe_tol))
-		a = [(points[ind][0], points[ind][1].x) for ind in selected_kf_inds]
-		print("first pass keyframes***********")
-		print(a, len(a))
 
 		# second pass: find inbetween points
 		selected_kf_inds.sort()
 		inbetween_points_inds = find_inbetween_points(selected_kf_inds, points, inbetween_tol)
-		print("second pass keyframe----------------")
-		a = [(points[ind][0], points[ind][1].x) for ind in inbetween_points_inds]
-		print(a, len(a))
-		print("------------------------------------")
 
 		# third pass: find curve handles
 		selected_points = np.array(sorted(list(set(selected_kf_inds + inbetween_points_inds))))
