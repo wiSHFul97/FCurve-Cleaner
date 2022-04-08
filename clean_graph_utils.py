@@ -127,6 +127,7 @@ def _get_index_range(selection_method, context, fcurve):
 	elif selection_method == 'scene':
 		index_range = get_kf_index_range_from_frames(fcurve, scene.frame_start, scene.frame_end)
 	elif selection_method == 'selected':
+		# TODO bug: uses selected xs but checks with current fcurve points
 		kfs = context.selected_editable_keyframes # list of kfs
 		specified_kf_xs = list(map(lambda x:x.co.x, [kfs[0], kfs[-1]]))
 		index_range = get_kf_index_from_x_co(fcurve, *specified_kf_xs)
@@ -135,7 +136,8 @@ def _get_index_range(selection_method, context, fcurve):
 def get_cleaning_kf_index_range(context, selection_method, fcurve):
 	index_range = _get_index_range(selection_method, context, fcurve)
 	if len(index_range) != 2:
-		raise 'Error in frame selection!'
+		return None
+		# raise Exception('Error in frame selection!')
 	return index_range
 
 def find_inbetween_points(selected_kf_inds, points, inbetween_precision):

@@ -15,32 +15,40 @@ class GRAPH_OT_clean_graph(bpy.types.Operator):
 		return context.area.type == 'GRAPH_EDITOR'
 	
 	def execute(self, context):
-		fcurve = context.active_editable_fcurve
-		if fcurve is None:
-			self.report({'WARNING'}, "Select an FCurve First!")
-			return {'CANCELLED'}
-			# TODO unless it is for all fcurves
 		scene = context.scene
+		if scene.clean_all_fcurves:
+			fcurves = context.object.animation_data.action.fcurves
+		else:
+			fcurve = context.active_editable_fcurve
+			if fcurve is None:
+				self.report({'WARNING'}, "Error in FCurve selection (select an editable FCurve)!")
+				return {'CANCELLED'}
+			fcurves = [fcurve]
+		
 		keyframe_tol = scene.keyframes_tolerance
 		inbetween_tol = scene.inbetweens_tolerance
 
-		# get clean KFs range
-		start, finish = list(map(lambda x:x[0], get_cleaning_kf_index_range(context, scene.frame_selection, fcurve)))
-		kf_points = fcurve.keyframe_points
-		points = list(map(lambda x:(x[0],x[1].co), kf_points.items()))
-		points.sort(key=lambda x: x[0])
+		for fcurve in fcurves:
+			# get clean KFs range
+			index_range = get_cleaning_kf_index_range(context, scene.frame_selection, fcurve)
+			if index_range is None:
+				continue
+			start, finish = list(map(lambda x:x[0], index_range))
+			kf_points = fcurve.keyframe_points
+			points = list(map(lambda x:(x[0],x[1].co), kf_points.items()))
+			points.sort(key=lambda x: x[0])
 
-		# first pass: select extermums as KFs
-		selected_kf_inds = [start, finish]
-		selected_kf_inds.extend(get_lr_exterms_kf_inds(points, start, finish, anomaly_tol=keyframe_tol))
+			# first pass: select extermums as KFs
+			selected_kf_inds = [start, finish]
+			selected_kf_inds.extend(get_lr_exterms_kf_inds(points, start, finish, anomaly_tol=keyframe_tol))
 
-		# second pass: find inbetween points
-		selected_kf_inds.sort()
-		inbetween_points_inds = find_inbetween_points(selected_kf_inds, points, inbetween_tol)
+			# second pass: find inbetween points
+			selected_kf_inds.sort()
+			inbetween_points_inds = find_inbetween_points(selected_kf_inds, points, inbetween_tol)
 
-		# third pass: find curve handles
-		selected_points = np.array(sorted(list(set(selected_kf_inds + inbetween_points_inds))))
-		calculate_apply_curve_handles(selected_points, kf_points, points)
+			# third pass: find curve handles
+			selected_points = np.array(sorted(list(set(selected_kf_inds + inbetween_points_inds))))
+			calculate_apply_curve_handles(selected_points, kf_points, points)
 
 		return {'FINISHED'}
 
@@ -84,13 +92,19 @@ def register():
 		min=0.0,
 		soft_max=1.0,
 	)
+	Scene.clean_all_fcurves = bpy.props.BoolProperty (
+		name='Clean All of Action Fcurves',
+		description='Clean all of the FCurves for selected action (specified frames will use for all FCurves)',
+		default=False,
+	)
 	bpy.utils.register_class(GRAPH_OT_clean_graph)
 
 def unregister():
 	bpy.utils.unregister_class(GRAPH_OT_clean_graph)
 	Scene = bpy.types.Scene
-	Scene.frame_selection = None
-	Scene.start_frame = None
-	Scene.end_frame = None
-	Scene.keyframes_tolerance = None
-	Scene.inbetweens_tolerance = None
+	del Scene.frame_selection
+	del Scene.start_frame
+	del Scene.end_frame
+	del Scene.keyframes_tolerance
+	del Scene.inbetweens_tolerance
+	del Scene.clean_all_fcurves

@@ -18,6 +18,7 @@ class VIEW3D_PT_clean_graph_ui(bpy.types.Panel):
 			row1 = layout.row(align=True)
 			row1.prop(scene, 'start_frame', slider=True)
 			row1.prop(scene, 'end_frame', slider=True)
+		layout.prop(scene, "clean_all_fcurves")
 		layout.label(text="Tolerances:")
 		row = layout.row()
 		row.prop(scene, 'keyframes_tolerance')
@@ -25,10 +26,8 @@ class VIEW3D_PT_clean_graph_ui(bpy.types.Panel):
 
 
 def register():
-	print('rrrrrrrrrrrrrrrrrrrrrrrrrr')
 	bpy.utils.register_class(VIEW3D_PT_clean_graph_ui)
 
 def unregister():
-	print('uuuuuuuuuuuuuuuuuuuuuuuu')
 	bpy.utils.unregister_class(VIEW3D_PT_clean_graph_ui)
 

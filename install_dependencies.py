@@ -143,7 +143,7 @@ class EXAMPLE_PT_warning_panel(bpy.types.Panel):
 class EXAMPLE_OT_install_dependencies(bpy.types.Operator):
 	bl_idname = "example.install_dependencies"
 	bl_label = "Install dependencies"
-	bl_description = "Downloads and ins"
+	bl_description = "Downloads and installs dependencies for this addon"
 	bl_options = {"REGISTER", "INTERNAL"}
 
 	@classmethod
