@@ -11,10 +11,10 @@ It tries to clean your dense animation graphs (like mocap graphs) like an animat
 ## ***You are in control!***
  
 And the best part is that you have the control to specify how much detail you want to preserve from the original curve via tolerance sliders. The lower the tolerance, the more points from the original FCurve will be selected (more on this later). 
-For more control over precisions on different areas of the curve, you can manually select different ranges of keyframes to clean with different precisions. For example 
 
 ![different tolerances](https://i.ibb.co/yFY0Mbf/control-original.jpg)
 
+For more control over precisions on different areas of the curve, you can manually select different ranges of keyframes to clean with different precisions. For example 
 
 ## How can I use it?
 
